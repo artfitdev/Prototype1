@@ -1,0 +1,93 @@
+!doctype html>
+<html lang="en" ng-app="myapp">
+<head>
+	<meta charset="UTF-8">
+	<title>My Bookshelf</title>
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootswatch/3.1.0/cyborg/bootstrap.min.css">
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+</head>
+<!-- putting this at the top to remove the jarring load -->
+<script src="http://code.angularjs.org/1.2.10/angular.min.js"></script>
+<body ng-controller="MainCtl">
+	<div class="jumbotron">
+		<button class="btn btn-primary pull-right">
+			<i class="fa fa-plus"></i> Add book
+		</button>
+		<h1>My Bookshelf</h1>
+	</div>
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-sm-3 well">
+				<h3>Books</h3>
+				<ul class="nav nav-pills nav-stacked">
+					<li ng-repeat="b in books" ng-class="{active: selected.title == b.title}">
+						<a href="" ng-click="get(b)">{{b.title}}</a>
+					</li>
+				</ul>
+			</div>
+			<div class="col-sm-6" ng-show="selected">
+				<h2>{{selected.title}}</h2>
+				<dl class="dl-horizontal">
+					<dt>Author: </dt>
+					<dd>{{selected.author}}</dd>
+				</dl>
+			</div>
+			<div class="col-sm-3" ng-show="selected">
+				<button class="btn btn-primary form-control">
+					<i class="fa fa-pencil"></i> Update this book
+				</button>
+				<button class="btn btn-danger form-control" ng-click="remove(selected)">
+					<i class="fa fa-trash-o"></i> Remove this book
+				</button>
+			</div>
+		</div>
+	</div>
+<script src="http://code.angularjs.org/1.2.10/angular-resource.min.js"></script>
+<script>
+	// new dependency: ngResource is included just above
+	var myapp = new angular.module("myapp", ["ngResource"]);
+
+	// inject the $resource dependency here
+	myapp.controller("MainCtl", ["$scope", "$resource", function($scope, $resource){
+		var Book = $resource("/books/:id", 
+			{id: "@id"}, 
+			{ 'get': {method: 'GET', cache : false} 
+		});
+
+		$scope.selected = null;
+
+
+		$scope.list = function(idx){
+			// Notice calls to Book are often given callbacks.
+			Book.query(function(data){
+				console.log(data);
+				$scope.books = data;
+				if(idx != undefined) {
+					$scope.selected = $scope.books[idx];
+					$scope.selected.idx = idx;
+				}
+			}, function(error){
+				alert(error.data);
+			});
+		};
+
+		$scope.list();
+
+		$scope.get = function (book) {
+			Book.get({id: book.id}, function(data) {
+				$scope.selected = data;
+			});
+			$scope.list();
+		};
+
+		$scope.remove = function(book) {
+			$scope.selected.$delete(function() {
+				
+			});
+			$scope.list();
+		};
+	}]);
+</script>
+</body>
+</html>
